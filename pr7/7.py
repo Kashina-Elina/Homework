@@ -5,6 +5,7 @@ from sympy import *
 
 def main():
     x = np.arange(0.01, 5, 0.1)
+    xf = np.arange(0.01, 3, 0.1)
 
     # График функции
     k = Symbol('k')
@@ -42,7 +43,7 @@ def main():
     yff = yf.diff(k)
     plt.subplot(3, 2, 5)
     plt.title("График  y'"+"'")
-    plt.plot(x, lambdify(k, yff, 'numpy')(x), color='b')
+    plt.plot(xf, lambdify(k, yff, 'numpy')(xf), color='b')
     print('Вторая производная =', yff)
 
     #Касательное расслоение
