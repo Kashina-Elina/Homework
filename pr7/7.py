@@ -5,7 +5,7 @@ from sympy import *
 
 def main():
     x = np.arange(0.01, 5, 0.1)
-    xf = np.arange(0.01, 3, 0.1)
+    xf = np.arange(0.03, 5, 0.1)
 
     # График функции
     k = Symbol('k')
@@ -45,6 +45,9 @@ def main():
     plt.title("График  y'"+"'")
     plt.plot(xf, lambdify(k, yff, 'numpy')(xf), color='b')
     print('Вторая производная =', yff)
+    plt.subplot(3, 2, 5).set_yticks(plt.subplot(3, 2, 5).get_yticks())
+
+    plt.subplot(3, 2, 5).set_yticklabels(np.round(np.linspace(0, 1, len(plt.subplot(3, 2, 5).get_yticks())), 2))
 
     #Касательное расслоение
     plt.subplot(3, 2, 6)
