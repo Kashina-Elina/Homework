@@ -1,4 +1,6 @@
 from itertools import combinations
+
+
 def main():
     s = input().split()
     output = set()
@@ -7,5 +9,7 @@ def main():
         output.update(l)
     print('Подмножества:',output)
     print('Количество подмножеств:',len(output))
-if __name__=="__main__":
+
+
+if __name__ == "__main__":
     main()
