@@ -1,4 +1,5 @@
 from copy import deepcopy
+count_line = 0
 
 
 def main():
@@ -74,8 +75,6 @@ def hit(coordinate: list, board: list, n: int, flag: bool):
     if flag:
         return board
 
-
-count_line = 0
 
 
 # функция, которая расставляет новые фигуры на поле
