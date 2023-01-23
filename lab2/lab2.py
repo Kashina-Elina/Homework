@@ -76,7 +76,6 @@ def hit(coordinate: list, board: list, n: int, flag: bool):
         return board
 
 
-
 # функция, которая расставляет новые фигуры на поле
 def add_new_figure(coordinate: list, board: list, l: int, n: int, start: list, file_out):
     global count_line
