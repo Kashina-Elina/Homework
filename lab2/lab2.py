@@ -1,4 +1,3 @@
-from copy import deepcopy
 count_line = 0
 
 
@@ -50,7 +49,8 @@ def add_figure(coordinate: list, board: list) -> list:
     return board
 
 
-# в  зависимости от флага функция либо расставляет '*' на доступный ход фигуры, либо проверяет, находится ли фигура под боем
+# в  зависимости от флага функция либо расставляет '*' на доступный ход фигуры, либо проверяет, находится ли фигура
+# под боем
 def hit(coordinate: list, board: list, n: int, flag: bool):
     possible_variants = []
     for i in coordinate:
@@ -82,7 +82,7 @@ def add_new_figure(coordinate: list, board: list, l: int, n: int, start: list, f
     if l == 0:
         count_line += 1
         variant = []
-        new_board = deepcopy(board)
+        new_board = board
         for i in range(len(board)):
             for j in range(len(board[i])):
                 if board[i][j] == '#':
