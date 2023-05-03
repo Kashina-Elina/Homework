@@ -1,7 +1,7 @@
 from tkinter import Tk, Label, Button, Entry, IntVar, END, W, E
 class Calculator:
 
-    def init(self, master:'Tk'):
+    def __init__(self, master:'Tk'):
         self.master = master
         master.title("Calculator")
         self.total = 0
