@@ -38,7 +38,10 @@ class ForList:
         else:
             return print('элемента в списке нет')
     def del_elem(self, elem):
-        self.list1.remove(elem)
+        if elem in self.list1:
+            self.list1.remove(elem)
+        else:
+            print('элемента нет в списке')
         return self.list1
     def quit(self):
         self.master.destroy()
