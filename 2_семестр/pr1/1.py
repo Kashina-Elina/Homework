@@ -77,3 +77,4 @@ box3.add(*[Item(str(i), i) for i in range(5)])
 print(box1.count(), box2.count(), box3.count())
 repack_boxes(box1, box2, box3)
 print(box1.count(), box2.count(), box3.count())
+
