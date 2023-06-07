@@ -1,3 +1,4 @@
+from copy import deepcopy
 count_line = 0
 
 
@@ -82,12 +83,12 @@ def add_new_figure(coordinate: list, board: list, l: int, n: int, start: list, f
     if l == 0:
         count_line += 1
         variant = []
-        new_board = board
         for i in range(len(board)):
             for j in range(len(board[i])):
                 if board[i][j] == '#':
                     variant.append([i, j])
         if count_line == 1:  # для вывода в консоль первого решения
+            new_board = deepcopy(board)
             possible_variants = []
             for i in variant:
                 y = i[1] - 1
