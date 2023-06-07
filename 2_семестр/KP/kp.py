@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import messagebox
 from ScrollableFrame import *
 from typing import Union
+from copy import deepcopy
 import customtkinter
 import pygame as pg
 import sys
@@ -151,19 +152,21 @@ class NewWindow:
         который рисует доску с фигурами
         """
         b = Board(self.n, self.l, self.k, self.func_get_entry())
+        flag = True
         if len(self.list_figures) > 1:
             for i in self.list_figures:
                 for j in self.list_figures:
-                    if i == j or j in b.hit(i, True):
+                    if i != j and j in b.hit(i, True):
+                        flag = False
                         messagebox.showinfo(title=None,
                                             message='Фигуры либо равны, либо находятся под боем друг у друга')
-                    break
+                        break
+            if flag:
+                if not b.solution_options:
+                    messagebox.showinfo(title=None, message='Нет решений')
                 else:
-                    if not b.solution_options:
-                        messagebox.showinfo(title=None, message='Нет решений')
-                    else:
-                        DrawBoard(self.func_get_entry(), b.solution_options[0], b.p_v, self.n, self.l, self.k,
-                                  self.master, b)
+                    DrawBoard(self.func_get_entry(), b.solution_options[0], b.p_v, self.n, self.l, self.k, self.master,
+                              b)
 
         else:
             if not b.solution_options:
@@ -263,12 +266,12 @@ class Board:
         if l == 0:
             self.count_line += 1
             variant = []
-            new_board = self.chess_b
             for i in range(len(self.chess_b)):
                 for j in range(len(self.chess_b[i])):
                     if self.chess_b[i][j] == '#':
                         variant.append([i, j])
             if self.count_line == 1:  # для вывода в консоль первого решения
+                new_board = deepcopy(self.chess_b)
                 possible_variants = []
                 for i in variant:
                     y = i[1] - 1
@@ -358,6 +361,8 @@ class DrawBoard:
                 self.file_out.write(f'({",".join(m)}) ')
             self.file_out.write('\n')
         messagebox.showinfo(title=None, message='Решения записаны в файл')
+        self.file_out.close()
+        sys.exit()
 
     def create_pgBoard(self) -> None:
         """
