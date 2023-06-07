@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import messagebox
 from ScrollableFrame import *
+from typing import Union
 import customtkinter
 import pygame as pg
 import sys
@@ -8,6 +9,7 @@ import sys
 
 class StartWindow:
     """Класс, создающий стартовое окно ввода данных"""
+
     def __init__(self, master: 'Tk'):
         """
         master - окно, на которое добавлется текст, поля ввода и кнопки
@@ -35,19 +37,21 @@ class StartWindow:
         self.label3.grid(row=2, column=0)
         self.draw_button.grid(row=3, column=0)
 
-    def validateN(self, n):
+    @staticmethod
+    def validateN(n: str) -> bool:
         """Метод, проверяющий является ли введённое значение числом и входит ли в диапазон [2, 20]"""
         try:
             if not n:
                 return True
-            if 1<int(n)<=20:
+            if 1 < int(n) <= 20:
                 return True
             else:
                 return False
         except ValueError:
             return False
 
-    def validateL(self, l):
+    @staticmethod
+    def validateL(l: str) -> bool:
         """Метод, проверяющий является ли введённое значение числом"""
         try:
             if not l:
@@ -59,7 +63,8 @@ class StartWindow:
         except ValueError:
             return False
 
-    def validateK(self, k):
+    @staticmethod
+    def validateK(k: str) -> bool:
         """Метод, проверяющий является ли введённое значение числом"""
         try:
             if not k:
@@ -71,22 +76,22 @@ class StartWindow:
         except ValueError:
             return False
 
-
-    def get_coords(self, coords):
+    def get_coords(self, coords: str) -> tuple:
         """Метод, возвращающий введенные координаты в виде пары x, y"""
         self.coords = coords.split()
         self.x = self.coords[0]
         self.y = self.coords[1]
         return self.x, self.y
 
-    def create_NewWindow(self):
+    def create_NewWindow(self) -> None:
         """Метод, создающий новое окно"""
-        NewWindow(int(self.entry_n.get()), int(self.entry_l.get()),int(self.entry_k.get()), self.master)
+        NewWindow(int(self.entry_n.get()), int(self.entry_l.get()), int(self.entry_k.get()), self.master)
 
 
 class NewWindow:
     """Класс, создающий новое окно для воода координат"""
-    def __init__(self, n, l, k, master: 'Tk'):
+
+    def __init__(self, n: int, l: int, k: int, master: 'Tk'):
         """
         LIGHT_GREEN - задаёт цвет фигуры на зеленый
         n, l, k - данные введённые пользователем и отвечающие за размер доски, количество фигур, которые нужно
@@ -113,17 +118,17 @@ class NewWindow:
         for i in range(int(k)):
             j = Entry(self.scrollable_frame, validate="key", validatecommand=(v1, '%P'), width=7)
             self.list_for_i.append(j)
-            j.grid(row=i+1, column=0)
+            j.grid(row=i + 1, column=0)
         self.draw_button = Button(self.scrollable_frame, text='нарисовать', command=lambda: self.create_Board())
-        self.draw_button.grid(row=k+1, column=0)
+        self.draw_button.grid(row=k + 1, column=0)
 
-    def validateJ(self, j):
+    def validateJ(self, j: str) -> bool:
         """Метод, проверяющий являются ли два введенных значения числами"""
         try:
             flag = True
             k = j.split()
             for i in k:
-                if int(i) < 0 or self.n <= int(i) or j.count(' ')>1:
+                if int(i) < 0 or self.n <= int(i) or j.count(' ') > 1:
                     flag = False
             if flag:
                 return True
@@ -132,14 +137,14 @@ class NewWindow:
         except ValueError:
             return False
 
-    def func_get_entry(self):
+    def func_get_entry(self) -> list:
         """Метод, добавляющий экземпляры класса Figure в список list_figures"""
         for i in self.list_for_i:
-            j = Figure(i.get().split()[0], i.get().split()[1], self.LIGHT_GREEN)
+            j = Figure(int(i.get().split()[0]), int(i.get().split()[1]), self.LIGHT_GREEN)
             self.list_figures.append(j)
         return self.list_figures
 
-    def create_Board(self):
+    def create_Board(self) -> None:
         """
         Метод, создающий экземпляр класса Board, осуществляющий проверку заданных фигур на равенство или нахождение
         под боем, а также проверку на отсутствие решений. В случае прохождении проверок вызывает класс DrawBoard,
@@ -150,16 +155,18 @@ class NewWindow:
             for i in self.list_figures:
                 for j in self.list_figures:
                     if i == j or j in b.hit(i, True):
-                        messagebox.showinfo(title=None, message='Фигуры либо равны, либо находятся под боем друг у друга')
+                        messagebox.showinfo(title=None,
+                                            message='Фигуры либо равны, либо находятся под боем друг у друга')
                     break
                 else:
-                    if b.solution_options == []:
+                    if not b.solution_options:
                         messagebox.showinfo(title=None, message='Нет решений')
                     else:
-                        DrawBoard(self.func_get_entry(), b.solution_options[0], b.p_v, self.n, self.l, self.k, self.master, b)
+                        DrawBoard(self.func_get_entry(), b.solution_options[0], b.p_v, self.n, self.l, self.k,
+                                  self.master, b)
 
         else:
-            if b.solution_options == []:
+            if not b.solution_options:
                 messagebox.showinfo(title=None, message='Нет решений')
             else:
                 DrawBoard(self.func_get_entry(), b.solution_options[0], b.p_v, self.n, self.l, self.k, self.master, b)
@@ -167,16 +174,17 @@ class NewWindow:
 
 class Figure:
     """Класс, создающий фигуру"""
-    def __init__(self, x, y, color):
+
+    def __init__(self, x: int, y: int, color: tuple):
         """
         x, y - задают координаты x и y, по которым фигура будет размещена на доске
         color - цвет фигуры
         """
-        self.x = int(x)
-        self.y = int(y)
+        self.x = x
+        self.y = y
         self.color = color
 
-    def possible(self, n):
+    def possible(self, n: int) -> list:
         """Метод, добавляющий в список possible_variants варианты возможных ходов фигур"""
         possible_variants = []
         new_y = self.y - 1
@@ -194,7 +202,8 @@ class Figure:
 
 class Board:
     """Класс, создающий доску"""
-    def __init__(self, n, l, k, list_figures):
+
+    def __init__(self, n: int, l: int, k: int, list_figures: list):
         """
         n, l, k - данные введённые пользователем и отвечающие за размер доски, количество фигур, которые нужно
         расставить, количество фигур, которые уже стоят на доске
@@ -218,8 +227,7 @@ class Board:
         for i in self.chess_b:
             print(*i)
 
-
-    def create_board(self):
+    def create_board(self) -> None:
         """Метод, создающий пустую доску"""
         for i in range(self.n):
             str_in_board = []
@@ -227,13 +235,13 @@ class Board:
                 str_in_board.append('0')
             self.chess_b.append(str_in_board)
 
-    def add_figure(self):
+    def add_figure(self) -> list:
         """Метод, добавляющий фигуры, введеныые пользователем из списка list_figures на доску"""
         for i in self.list_figures:
             self.chess_b[i.x][i.y] = '#'
         return self.chess_b
 
-    def hit(self, figure, flag):
+    def hit(self, figure: Figure, flag: bool) -> Union[None, str, list]:
         """Метод, осуществляющий проверку, находится ли фигура под боем"""
         for i in figure.possible(self.n):
             if flag:
@@ -246,7 +254,7 @@ class Board:
         if flag:
             return self.chess_b
 
-    def add_new_figure(self, start, l):
+    def add_new_figure(self, start: list, l: int) -> list:
         """
         Метод, добавляющий возможные варианты расстановки фигур
         possible_variants - список с координатами, куда может походить фигура
@@ -290,20 +298,20 @@ class Board:
                 for j in range(start[1], len(self.chess_b[i])):
                     if self.chess_b[i][j] == '0' and self.hit(Figure(i, j, (0, 0, 255)), False) == 'ok':
                         self.chess_b[i][j] = '#'
-                        self.add_new_figure([i, j], l-1)
+                        self.add_new_figure([i, j], l - 1)
                         self.chess_b[i][j] = '0'
             else:
                 for j in range(len(self.chess_b[i])):
                     if self.chess_b[i][j] == '0' and self.hit(Figure(i, j, (0, 0, 255)), False) == 'ok':
                         self.chess_b[i][j] = '#'
-                        self.add_new_figure([i, j], l-1)
+                        self.add_new_figure([i, j], l - 1)
                         self.chess_b[i][j] = '0'
-
 
 
 class DrawBoard:
     """Класс, рисующий доску"""
-    def __init__(self, k_coords, new_coords, hit_variants, n, l, k, master, b):
+
+    def __init__(self, k_coords: list, new_coords: list, hit_variants: list, n: int, l: int, k: int, master: 'Tk', b: Board):
         """
         k_coords - координаты фигур, введенных пользователем
         new_coords - координаты выставленных программой фигур(первый вариант расстановки)
@@ -329,11 +337,11 @@ class DrawBoard:
         self.k = k
         self.b = b
         self.sc = pg.display.set_mode(self.RES1)
-        self.BLACK = (0,0,0)
+        self.BLACK = (0, 0, 0)
         self.STATE_BLUE = (106, 90, 205)
         self.BLEDZOLOT = (238, 232, 170)
         self.FPS = 60
-        self.size = 600/self.n
+        self.size = 600 / self.n
         pg.init()
         pg.mixer.init()
         pg.display.set_caption("My Game")
@@ -341,7 +349,7 @@ class DrawBoard:
         self.clock = pg.time.Clock()
         self.create_pgBoard()
 
-    def output_file(self):
+    def output_file(self) -> None:
         """Метод, осуществляющий запись всех вариантов расстановки фигур в файл"""
         variant = self.b.solution_options
         for k in variant:
@@ -349,16 +357,16 @@ class DrawBoard:
                 m = [str(i.x), str(i.y)]
                 self.file_out.write(f'({",".join(m)}) ')
             self.file_out.write('\n')
-        return
+        messagebox.showinfo(title=None, message='Решения записаны в файл')
 
-    def create_pgBoard(self):
+    def create_pgBoard(self) -> None:
         """
         Метод, рисующий доску с помощью pygame, а также вызывающий метод output_file для записи в файл решений при
         нажатии на кнопку Output
         """
         Text = self.fontObj.render('Output', True, (0, 0, 0), None)
         outputButton = 620, 280, 150, 40
-        self.button = pg.draw.rect( self.sc, (255, 255, 255), outputButton)
+        self.button = pg.draw.rect(self.sc, (255, 255, 255), outputButton)
         self.sc.blit(Text, (630, 290))
         pg.display.update()
         board = pg.Surface(self.RES)
@@ -374,11 +382,11 @@ class DrawBoard:
             pg.display.update()
         for new_coords in self.list_new_coords:
             x, y = new_coords.x, new_coords.y
-            pg.draw.rect(self.sc, new_coords.color, [self.size*y, self.size*x, self.size, self.size])
+            pg.draw.rect(self.sc, new_coords.color, [self.size * y, self.size * x, self.size, self.size])
             pg.display.update()
         for coords in self.list_coords:
             x, y = coords.x, coords.y
-            pg.draw.rect(self.sc, coords.color, [self.size*y, self.size*x, self.size, self.size])
+            pg.draw.rect(self.sc, coords.color, [self.size * y, self.size * x, self.size, self.size])
             pg.display.update()
         for x in range(self.n):
             for y in range(self.n):
