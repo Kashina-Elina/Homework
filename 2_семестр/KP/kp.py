@@ -1,4 +1,4 @@
-from tkinter import *
+import tkinter
 from tkinter import messagebox
 from ScrollableFrame import *
 from typing import Union
@@ -8,69 +8,54 @@ import pygame as pg
 import sys
 
 
-class StartWindow:
+BLACK = (0, 0, 0)
+STATE_BLUE = (106, 90, 205)
+BLEDZOLOT = (238, 232, 170)
+LIGHT_GREEN = (144, 238, 144)
+CORAL = (255, 127, 80)
+
+
+class StartWindow(tkinter.Tk):
     """Класс, создающий стартовое окно ввода данных"""
 
-    def __init__(self, master: 'Tk'):
+    def __init__(self):
         """
-        master - окно, на которое добавлется текст, поля ввода и кнопки
-        v1 - функция регистрирующая self.validateN как функцию, которая будет выполнена при завершении работы программы.
-        v2 - функция регистрирующая self.validateL как функцию, которая будет выполнена при завершении работы программы.
-        v2 - функция регистрирующая self.validateK как функцию, которая будет выполнена при завершении работы программы.
-        draw_button - кнопка, при нажатии на которую вызывается функция создания нового окна
+        v - функция регистрирующая self.validate как функцию, которая будет выполнена при завершении работы программы.
+        v1 - функция регистрирующая self.validate_l_k как функцию, которая будет выполнена при завершении работы программы.
         """
-        self.master = master
-        v1 = master.register(self.validateN)
-        v2 = master.register(self.validateL)
-        v3 = master.register(self.validateK)
-        self.label1 = Label(master, text='введите n')
-        self.label2 = Label(master, text='введите l')
-        self.label3 = Label(master, text='введите k')
-        self.entry_n = Entry(master, validate="key", validatecommand=(v1, '%P'), width=7)
-        self.entry_l = Entry(master, validate="key", validatecommand=(v2, '%P'), width=7)
-        self.entry_k = Entry(master, validate="key", validatecommand=(v3, '%P'), width=7)
-        self.draw_button = Button(master, text='нарисовать', command=lambda: self.create_NewWindow())
-        self.entry_n.grid(row=0, column=1)
-        self.label1.grid(row=0, column=0)
-        self.entry_l.grid(row=1, column=1)
-        self.label2.grid(row=1, column=0)
-        self.entry_k.grid(row=2, column=1)
-        self.label3.grid(row=2, column=0)
-        self.draw_button.grid(row=3, column=0)
+        super().__init__()
+        v = self.register(self.validate)
+        v1 = self.register(self.validate_l_k)
+        self.entry_n = self.create_label(' введите n ', 0, 0, v)
+        self.entry_l = self.create_label(' введите l ', 1, 0, v1)
+        self.entry_k = self.create_label(' введите k ', 2, 0, v1)
+        Button(self, text='нарисовать', command=lambda: self.create_NewWindow()).grid(row=3, column=0)
+
+    def create_label(self, text_label: str, r: int, c: int, v):
+        Label(self, text=text_label).grid(row=r, column=c)
+        entry = Entry(self, validate="key", validatecommand=(v, '%P'), width=7)
+        entry.grid(row=r, column=1)
+        return entry
 
     @staticmethod
-    def validateN(n: str) -> bool:
+    def validate(n: str) -> bool:
         """Метод, проверяющий является ли введённое значение числом и входит ли в диапазон [2, 20]"""
         try:
             if not n:
                 return True
-            if 1 < int(n) <= 20:
+            if 0 < int(n) <= 20:
                 return True
             else:
                 return False
         except ValueError:
             return False
 
-    @staticmethod
-    def validateL(l: str) -> bool:
+    def validate_l_k(self, l: str) -> bool:
         """Метод, проверяющий является ли введённое значение числом"""
         try:
             if not l:
                 return True
-            if int(l):
-                return True
-            else:
-                return False
-        except ValueError:
-            return False
-
-    @staticmethod
-    def validateK(k: str) -> bool:
-        """Метод, проверяющий является ли введённое значение числом"""
-        try:
-            if not k:
-                return True
-            if int(k):
+            if int(l) >= 0 or int(l) <= int(self.entry_n.get())**2:
                 return True
             else:
                 return False
@@ -86,42 +71,38 @@ class StartWindow:
 
     def create_NewWindow(self) -> None:
         """Метод, создающий новое окно"""
-        NewWindow(int(self.entry_n.get()), int(self.entry_l.get()), int(self.entry_k.get()), self.master)
+        NewWindow(int(self.entry_n.get()), int(self.entry_l.get()), int(self.entry_k.get()))
 
 
-class NewWindow:
+class NewWindow(tkinter.Tk):
     """Класс, создающий новое окно для воода координат"""
 
-    def __init__(self, n: int, l: int, k: int, master: 'Tk'):
+    def __init__(self, n: int, l: int, k: int):
         """
-        LIGHT_GREEN - задаёт цвет фигуры на зеленый
         n, l, k - данные введённые пользователем и отвечающие за размер доски, количество фигур, которые нужно
         расставить, количество фигур, которые уже стоят на доске
         list_figures - список, в котором хранятся экземпляры класса Figure
-        master - окно, на которое добавлется текст, поля ввода и кнопки
         scrollable_frame - фрейм с прокруткой
-        draw_button - кнопка, при нажатии на которую рисуется доска с фигурами
         """
-        self.LIGHT_GREEN = (144, 238, 144)
+        super().__init__()
         self.n = n
         self.l = l
         self.k = k
         self.list_figures = []
         self.list_for_i = []
-        self.master = master
-        self.new_master = Toplevel(master)
-        self.new_master.geometry('140x200')
-        self.scrollable_frame = customtkinter.CTkScrollableFrame(master=self.new_master, width=130, height=200)
+        self.geometry('140x200')
+        self.scrollable_frame = customtkinter.CTkScrollableFrame(master=self, width=130, height=200)
         self.scrollable_frame.pack()
-        self.coords_label = Label(self.scrollable_frame, text='введите координаты: ')
-        self.coords_label.grid(row=0, column=0)
         v1 = self.scrollable_frame.register(self.validateJ)
+        self.visualize(self.k, v1)
+
+    def visualize(self, k, v):
+        Label(self.scrollable_frame, text='введите координаты: ').grid(row=0, column=0)
         for i in range(int(k)):
-            j = Entry(self.scrollable_frame, validate="key", validatecommand=(v1, '%P'), width=7)
+            j = Entry(self.scrollable_frame, validate="key", validatecommand=(v, '%P'), width=7)
             self.list_for_i.append(j)
             j.grid(row=i + 1, column=0)
-        self.draw_button = Button(self.scrollable_frame, text='нарисовать', command=lambda: self.create_Board())
-        self.draw_button.grid(row=k + 1, column=0)
+        Button(self.scrollable_frame, text='нарисовать', command=lambda: self.create_Board()).grid(row=k + 1, column=0)
 
     def validateJ(self, j: str) -> bool:
         """Метод, проверяющий являются ли два введенных значения числами"""
@@ -141,7 +122,7 @@ class NewWindow:
     def func_get_entry(self) -> list:
         """Метод, добавляющий экземпляры класса Figure в список list_figures"""
         for i in self.list_for_i:
-            j = Figure(int(i.get().split()[0]), int(i.get().split()[1]), self.LIGHT_GREEN)
+            j = Figure(int(i.get().split()[0]), int(i.get().split()[1]), LIGHT_GREEN)
             self.list_figures.append(j)
         return self.list_figures
 
@@ -162,18 +143,17 @@ class NewWindow:
                                             message='Фигуры либо равны, либо находятся под боем друг у друга')
                         break
             if flag:
-                if not b.solution_options:
-                    messagebox.showinfo(title=None, message='Нет решений')
-                else:
-                    DrawBoard(self.func_get_entry(), b.solution_options[0], b.p_v, self.n, self.l, self.k, self.master,
-                              b)
+                self.next_window(b)
 
         else:
-            if not b.solution_options:
-                messagebox.showinfo(title=None, message='Нет решений')
-            else:
-                DrawBoard(self.func_get_entry(), b.solution_options[0], b.p_v, self.n, self.l, self.k, self.master, b)
+            self.next_window(b)
 
+    def next_window(self, b):
+        if not b.solution_options:
+            messagebox.showinfo(title=None, message='Нет решений')
+        else:
+            DrawBoard(self.func_get_entry(), b.solution_options[0], b.p_v, self.n, self.l, self.k, self.master,
+                      b)
 
 class Figure:
     """Класс, создающий фигуру"""
@@ -210,10 +190,8 @@ class Board:
         """
         n, l, k - данные введённые пользователем и отвечающие за размер доски, количество фигур, которые нужно
         расставить, количество фигур, которые уже стоят на доске
-        CORAL - задаёт красный цвет
         list_figures - список с координатами фигур, введённых пользователем
         """
-        self.CORAL = (255, 127, 80)
         self.n = n
         self.l = l
         self.k = k
@@ -239,7 +217,7 @@ class Board:
             self.chess_b.append(str_in_board)
 
     def add_figure(self) -> list:
-        """Метод, добавляющий фигуры, введеныые пользователем из списка list_figures на доску"""
+        """Метод, добавляющий фигуры, введенные пользователем из списка list_figures на доску"""
         for i in self.list_figures:
             self.chess_b[i.x][i.y] = '#'
         return self.chess_b
@@ -292,10 +270,10 @@ class Board:
             solution_options_1 = []
             for k in variant:
                 if k not in self.list_figures:
-                    solution_options_1.append(Figure(k[0], k[1], self.CORAL))
+                    solution_options_1.append(Figure(k[0], k[1], CORAL))
             self.solution_options.append(solution_options_1)
             return variant
-        # # чтобы при вызове рекурсии функция каждый раз не начинала с 1 элемента
+        # чтобы при вызове рекурсии функция каждый раз не начинала с 1 элемента
         for i in range(start[0], len(self.chess_b)):
             if i == start[0]:
                 for j in range(start[1], len(self.chess_b[i])):
@@ -326,7 +304,6 @@ class DrawBoard:
         RES - размер шахматной доски
         RES1 - размер окна, на которое добавляется шахматная доска
         size - размер каждой клетки доски
-        BLACK, STATE_BLUE, BLEDZOLOT - черный, синий и светло-желтый цвета
         """
         self.file_out = open('output.txt', 'w+', encoding='utf-8')
         self.master = master
@@ -340,9 +317,6 @@ class DrawBoard:
         self.k = k
         self.b = b
         self.sc = pg.display.set_mode(self.RES1)
-        self.BLACK = (0, 0, 0)
-        self.STATE_BLUE = (106, 90, 205)
-        self.BLEDZOLOT = (238, 232, 170)
         self.FPS = 60
         self.size = 600 / self.n
         pg.init()
@@ -369,21 +343,21 @@ class DrawBoard:
         Метод, рисующий доску с помощью pygame, а также вызывающий метод output_file для записи в файл решений при
         нажатии на кнопку Output
         """
-        Text = self.fontObj.render('Output', True, (0, 0, 0), None)
-        outputButton = 620, 280, 150, 40
-        self.button = pg.draw.rect(self.sc, (255, 255, 255), outputButton)
-        self.sc.blit(Text, (630, 290))
+        text = self.fontObj.render('Output', True, (0, 0, 0), None)
+        outputbutton = 620, 280, 150, 40
+        self.button = pg.draw.rect(self.sc, (255, 255, 255), outputbutton)
+        self.sc.blit(text, (630, 290))
         pg.display.update()
         board = pg.Surface(self.RES)
 
         for x in range(self.n):
             for y in range(self.n):
-                pg.draw.rect(self.sc, self.BLEDZOLOT, [self.size * x, self.size * y, self.size, self.size])
+                pg.draw.rect(self.sc, BLEDZOLOT, [self.size * x, self.size * y, self.size, self.size])
             pg.display.update()
 
         for hit in self.hit_variants:
             x, y = hit[0], hit[1]
-            pg.draw.rect(self.sc, self.STATE_BLUE, [self.size * y, self.size * x, self.size, self.size])
+            pg.draw.rect(self.sc, STATE_BLUE, [self.size * y, self.size * x, self.size, self.size])
             pg.display.update()
         for new_coords in self.list_new_coords:
             x, y = new_coords.x, new_coords.y
@@ -395,7 +369,7 @@ class DrawBoard:
             pg.display.update()
         for x in range(self.n):
             for y in range(self.n):
-                pg.draw.rect(self.sc, self.BLACK, [self.size * x, self.size * y, self.size, self.size], width=2)
+                pg.draw.rect(self.sc, BLACK, [self.size * x, self.size * y, self.size, self.size], width=2)
                 pg.display.update()
         while True:
             for event in pg.event.get():
@@ -410,6 +384,5 @@ class DrawBoard:
             self.sc.blit(board, (0, 0))
 
 
-root = Tk()
-my_gui = StartWindow(root)
-root.mainloop()
+if __name__ == "__main__":
+    StartWindow().mainloop()
