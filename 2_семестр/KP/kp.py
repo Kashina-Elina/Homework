@@ -26,12 +26,12 @@ class StartWindow(tkinter.Tk):
         super().__init__()
         v = self.register(self.validate_n)
         v1 = self.register(self.validate_l_k)
-        self.entry_n = self.create_label(' введите n ', 0, 0, v)
-        self.entry_l = self.create_label(' введите l ', 1, 0, v1)
-        self.entry_k = self.create_label(' введите k ', 2, 0, v1)
+        self.entry_n = self.create_label_and_entry(' введите n ', 0, 0, v)
+        self.entry_l = self.create_label_and_entry(' введите l ', 1, 0, v1)
+        self.entry_k = self.create_label_and_entry(' введите k ', 2, 0, v1)
         Button(self, text='нарисовать', command=lambda: self.create_NewWindow()).grid(row=3, column=0)
 
-    def create_label(self, text_label: str, r: int, c: int, v):
+    def create_label_and_entry(self, text_label: str, r: int, c: int, v):
         Label(self, text=text_label).grid(row=r, column=c)
         entry = Entry(self, validate="key", validatecommand=(v, '%P'), width=7)
         entry.grid(row=r, column=1)
@@ -204,8 +204,6 @@ class Board:
         self.add_new_figure([0, 0], l)
         for i in self.list_figures:
             self.hit(i, True)
-        for i in self.board:
-            print(*i)
 
     def create_board(self) -> list:
         """Метод, создающий пустую доску"""
@@ -288,14 +286,12 @@ class DrawBoard:
         """
         k_coords - координаты фигур, введенных пользователем
         new_coords - координаты выставленных программой фигур(первый вариант расстановки)
-        hit_variants - возможные варианты, куда может походить фига
+        hit_variants - возможные варианты, куда может походить фигура
         n, l, k - данные введённые пользователем и отвечающие за размер доски, количество фигур, которые нужно
         расставить, количество фигур, которые уже стоят на доске
         b - экземпляр класса Board
         file_out - файл для вывода решений
-        RES - размер шахматной доски
         RES1 - размер окна, на которое добавляется шахматная доска
-        size - размер каждой клетки доски
         """
         self.file_out = open('output.txt', 'w+', encoding='utf-8')
         self.hit_variants = hit_variants
@@ -327,13 +323,13 @@ class DrawBoard:
         нажатии на кнопку Output
         """
         RES = self.WIDTH, self.HEIGHT = 600, 600
-        FPS = 60
+        self.FPS = 60
         size = 600 / self.n
         pg.init()
         pg.mixer.init()
         pg.display.set_caption("My Game")
         fontObj = pg.font.Font(None, 48)
-        clock = pg.time.Clock()
+        self.clock = pg.time.Clock()
         text = fontObj.render('Output', True, (0, 0, 0), None)
         outputbutton = (620, 280, 150, 40)
         self.button = pg.draw.rect(self.sc, (255, 255, 255), outputbutton)
