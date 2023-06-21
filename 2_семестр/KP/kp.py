@@ -255,8 +255,6 @@ class Board:
                 self.first_solution_hits = possible_variants
                 for i in possible_variants:
                     new_board[i[0]][i[1]] = '*'
-                for o in new_board:
-                    print(o)
             solution = []
             for k in figures_coords:
                 if k not in self.list_figures:
