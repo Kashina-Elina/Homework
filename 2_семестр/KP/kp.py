@@ -7,10 +7,9 @@ import customtkinter
 import pygame as pg
 import sys
 
-
 BLACK = (0, 0, 0)
 STATE_BLUE = (106, 90, 205)
-BLEDZOLOT = (238, 232, 170)
+LIGHT_YELLOW = (238, 232, 170)
 LIGHT_GREEN = (144, 238, 144)
 CORAL = (255, 127, 80)
 
@@ -24,7 +23,7 @@ class StartWindow(tkinter.Tk):
         v1 - функция регистрирующая self.validate_l_k как функцию, которая будет выполнена при завершении работы программы.
         """
         super().__init__()
-        v = self.register(self.validate)
+        v = self.register(self.validate_n)
         v1 = self.register(self.validate_l_k)
         self.entry_n = self.create_label(' введите n ', 0, 0, v)
         self.entry_l = self.create_label(' введите l ', 1, 0, v1)
@@ -38,7 +37,7 @@ class StartWindow(tkinter.Tk):
         return entry
 
     @staticmethod
-    def validate(n: str) -> bool:
+    def validate_n(n: str) -> bool:
         """Метод, проверяющий является ли введённое значение числом и входит ли в диапазон [2, 20]"""
         try:
             if not n:
@@ -55,7 +54,7 @@ class StartWindow(tkinter.Tk):
         try:
             if not l:
                 return True
-            if int(l) >= 0 or int(l) <= int(self.entry_n.get())**2:
+            if int(l) >= 0 or int(l) <= int(self.entry_n.get()) ** 2:
                 return True
             else:
                 return False
@@ -93,7 +92,7 @@ class NewWindow(tkinter.Tk):
         self.geometry('140x200')
         self.scrollable_frame = customtkinter.CTkScrollableFrame(master=self, width=130, height=200)
         self.scrollable_frame.pack()
-        v1 = self.scrollable_frame.register(self.validateJ)
+        v1 = self.scrollable_frame.register(self.validate_j)
         self.visualize(self.k, v1)
 
     def visualize(self, k, v):
@@ -102,9 +101,9 @@ class NewWindow(tkinter.Tk):
             j = Entry(self.scrollable_frame, validate="key", validatecommand=(v, '%P'), width=7)
             self.list_for_i.append(j)
             j.grid(row=i + 1, column=0)
-        Button(self.scrollable_frame, text='нарисовать', command=lambda: self.create_Board()).grid(row=k + 1, column=0)
+        Button(self.scrollable_frame, text='нарисовать', command=lambda: self.create_board()).grid(row=k + 1, column=0)
 
-    def validateJ(self, j: str) -> bool:
+    def validate_j(self, j: str) -> bool:
         """Метод, проверяющий являются ли два введенных значения числами"""
         try:
             flag = True
@@ -126,7 +125,7 @@ class NewWindow(tkinter.Tk):
             self.list_figures.append(j)
         return self.list_figures
 
-    def create_Board(self) -> None:
+    def create_board(self) -> None:
         """
         Метод, создающий экземпляр класса Board, осуществляющий проверку заданных фигур на равенство или нахождение
         под боем, а также проверку на отсутствие решений. В случае прохождении проверок вызывает класс DrawBoard,
@@ -144,7 +143,6 @@ class NewWindow(tkinter.Tk):
                         break
             if flag:
                 self.next_window(b)
-
         else:
             self.next_window(b)
 
@@ -154,6 +152,7 @@ class NewWindow(tkinter.Tk):
         else:
             DrawBoard(self.func_get_entry(), b.solution_options[0], b.p_v, self.n, self.l, self.k, self.master,
                       b)
+
 
 class Figure:
     """Класс, создающий фигуру"""
@@ -167,8 +166,8 @@ class Figure:
         self.y = y
         self.color = color
 
-    def possible(self, n: int) -> list:
-        """Метод, добавляющий в список possible_variants варианты возможных ходов фигур"""
+    def search_hit_coords(self, n: int) -> list:
+        """Метод, который ищет и добавляет в список координаты клеток, находящиеся под атакой фигур"""
         possible_variants = []
         new_y = self.y - 1
         for j in range(-2, 3, 2):
@@ -224,7 +223,7 @@ class Board:
 
     def hit(self, figure: Figure, flag: bool) -> Union[None, str, list]:
         """Метод, осуществляющий проверку, находится ли фигура под боем"""
-        for i in figure.possible(self.n):
+        for i in figure.search_hit_coords(self.n):
             if flag:
                 self.chess_b[i[0]][i[1]] = '*'
             if not flag:
@@ -292,7 +291,8 @@ class Board:
 class DrawBoard:
     """Класс, рисующий доску"""
 
-    def __init__(self, k_coords: list, new_coords: list, hit_variants: list, n: int, l: int, k: int, master: 'Tk', b: Board):
+    def __init__(self, k_coords: list, new_coords: list, hit_variants: list, n: int, l: int, k: int, master: 'Tk',
+                 b: Board):
         """
         k_coords - координаты фигур, введенных пользователем
         new_coords - координаты выставленных программой фигур(первый вариант расстановки)
@@ -352,7 +352,7 @@ class DrawBoard:
 
         for x in range(self.n):
             for y in range(self.n):
-                pg.draw.rect(self.sc, BLEDZOLOT, [self.size * x, self.size * y, self.size, self.size])
+                pg.draw.rect(self.sc, LIGHT_YELLOW, [self.size * x, self.size * y, self.size, self.size])
             pg.display.update()
 
         for hit in self.hit_variants:
