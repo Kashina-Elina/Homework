@@ -12,6 +12,7 @@ STATE_BLUE = (106, 90, 205)
 LIGHT_YELLOW = (238, 232, 170)
 LIGHT_GREEN = (144, 238, 144)
 CORAL = (255, 127, 80)
+BLUE = (0, 0, 255)
 
 
 class StartWindow(tkinter.Tk):
@@ -92,7 +93,7 @@ class NewWindow(tkinter.Tk):
         self.geometry('140x200')
         self.scrollable_frame = customtkinter.CTkScrollableFrame(master=self, width=130, height=200)
         self.scrollable_frame.pack()
-        v1 = self.scrollable_frame.register(self.validate_j)
+        v1 = self.scrollable_frame.register(self.validate)
         self.visualize(self.k, v1)
 
     def visualize(self, k, v):
@@ -103,7 +104,7 @@ class NewWindow(tkinter.Tk):
             j.grid(row=i + 1, column=0)
         Button(self.scrollable_frame, text='нарисовать', command=lambda: self.create_board()).grid(row=k + 1, column=0)
 
-    def validate_j(self, j: str) -> bool:
+    def validate(self, j: str) -> bool:
         """Метод, проверяющий являются ли два введенных значения числами"""
         try:
             flag = True
@@ -147,11 +148,10 @@ class NewWindow(tkinter.Tk):
             self.next_window(b)
 
     def next_window(self, b):
-        if not b.solution_options:
+        if not b.all_solutions:
             messagebox.showinfo(title=None, message='Нет решений')
         else:
-            DrawBoard(self.func_get_entry(), b.solution_options[0], b.p_v, self.n, self.l, self.k, self.master,
-                      b)
+            DrawBoard(self.func_get_entry(), b.all_solutions[0], b.first_solution_hits, self.n, self.l, self.k, b)
 
 
 class Figure:
@@ -195,44 +195,46 @@ class Board:
         self.l = l
         self.k = k
         self.list_figures = list_figures
-        self.chess_b = []
-        self.solution_options = []
+        self.board = self.create_board()
+        self.all_solutions = []
         self.create_board()
         self.add_figure()
-        self.count_line = 0
-        self.p_v = []
+        self.solution_count = 0
+        self.first_solution_hits = []
         self.add_new_figure([0, 0], l)
         for i in self.list_figures:
             self.hit(i, True)
-        for i in self.chess_b:
+        for i in self.board:
             print(*i)
 
-    def create_board(self) -> None:
+    def create_board(self) -> list:
         """Метод, создающий пустую доску"""
+        chess_b = []
         for i in range(self.n):
             str_in_board = []
             for j in range(self.n):
                 str_in_board.append('0')
-            self.chess_b.append(str_in_board)
+            chess_b.append(str_in_board)
+        return chess_b
 
     def add_figure(self) -> list:
         """Метод, добавляющий фигуры, введенные пользователем из списка list_figures на доску"""
         for i in self.list_figures:
-            self.chess_b[i.x][i.y] = '#'
-        return self.chess_b
+            self.board[i.x][i.y] = '#'
+        return self.board
 
     def hit(self, figure: Figure, flag: bool) -> Union[None, str, list]:
         """Метод, осуществляющий проверку, находится ли фигура под боем"""
         for i in figure.search_hit_coords(self.n):
             if flag:
-                self.chess_b[i[0]][i[1]] = '*'
+                self.board[i[0]][i[1]] = '*'
             if not flag:
-                if self.chess_b[i[0]][i[1]] == '#':
+                if self.board[i[0]][i[1]] == '#':
                     return
         if not flag:
             return 'ok'
         if flag:
-            return self.chess_b
+            return self.board
 
     def add_new_figure(self, start: list, l: int) -> list:
         """
@@ -241,58 +243,48 @@ class Board:
         solution_options - варинаты, куда можно поставить количество фигур, заданное как l
         """
         if l == 0:
-            self.count_line += 1
-            variant = []
-            for i in range(len(self.chess_b)):
-                for j in range(len(self.chess_b[i])):
-                    if self.chess_b[i][j] == '#':
-                        variant.append([i, j])
-            if self.count_line == 1:  # для вывода в консоль первого решения
-                new_board = deepcopy(self.chess_b)
+            self.solution_count += 1
+            figures_coords = []
+            for i in range(len(self.board)):
+                for j in range(len(self.board[i])):
+                    if self.board[i][j] == '#':
+                        figures_coords.append([i, j])
+            if self.solution_count == 1:  # для вывода в консоль первого решения
+                new_board = deepcopy(self.board)
                 possible_variants = []
-                for i in variant:
-                    y = i[1] - 1
-                    for j in range(-2, 3, 2):
-                        x = i[0] + j
-                        if 0 <= x < self.n and 0 <= y < self.n:
-                            possible_variants.append((x, y))
-                    y = i[1] + 1
-                    for j in range(-2, 3, 2):
-                        x = i[0] + j
-                        if 0 <= x < self.n and 0 <= y < self.n:
-                            possible_variants.append((x, y))
-                self.p_v = possible_variants
+                for i in figures_coords:
+                    possible_variants += Figure(i[0], i[1], CORAL).search_hit_coords(self.n)
+                self.first_solution_hits = possible_variants
                 for i in possible_variants:
                     new_board[i[0]][i[1]] = '*'
                 for o in new_board:
                     print(o)
-            solution_options_1 = []
-            for k in variant:
+            solution = []
+            for k in figures_coords:
                 if k not in self.list_figures:
-                    solution_options_1.append(Figure(k[0], k[1], CORAL))
-            self.solution_options.append(solution_options_1)
-            return variant
+                    solution.append(Figure(k[0], k[1], CORAL))
+            self.all_solutions.append(solution)
+            return figures_coords
         # чтобы при вызове рекурсии функция каждый раз не начинала с 1 элемента
-        for i in range(start[0], len(self.chess_b)):
+        for i in range(start[0], len(self.board)):
             if i == start[0]:
-                for j in range(start[1], len(self.chess_b[i])):
-                    if self.chess_b[i][j] == '0' and self.hit(Figure(i, j, (0, 0, 255)), False) == 'ok':
-                        self.chess_b[i][j] = '#'
+                for j in range(start[1], len(self.board[i])):
+                    if self.board[i][j] == '0' and self.hit(Figure(i, j, BLUE), False) == 'ok':
+                        self.board[i][j] = '#'
                         self.add_new_figure([i, j], l - 1)
-                        self.chess_b[i][j] = '0'
+                        self.board[i][j] = '0'
             else:
-                for j in range(len(self.chess_b[i])):
-                    if self.chess_b[i][j] == '0' and self.hit(Figure(i, j, (0, 0, 255)), False) == 'ok':
-                        self.chess_b[i][j] = '#'
+                for j in range(len(self.board[i])):
+                    if self.board[i][j] == '0' and self.hit(Figure(i, j, BLUE), False) == 'ok':
+                        self.board[i][j] = '#'
                         self.add_new_figure([i, j], l - 1)
-                        self.chess_b[i][j] = '0'
+                        self.board[i][j] = '0'
 
 
 class DrawBoard:
     """Класс, рисующий доску"""
 
-    def __init__(self, k_coords: list, new_coords: list, hit_variants: list, n: int, l: int, k: int, master: 'Tk',
-                 b: Board):
+    def __init__(self, k_coords: list, new_coords: list, hit_variants: list, n: int, l: int, k: int, b: Board):
         """
         k_coords - координаты фигур, введенных пользователем
         new_coords - координаты выставленных программой фигур(первый вариант расстановки)
@@ -306,29 +298,20 @@ class DrawBoard:
         size - размер каждой клетки доски
         """
         self.file_out = open('output.txt', 'w+', encoding='utf-8')
-        self.master = master
         self.hit_variants = hit_variants
         self.list_new_coords = new_coords
         self.list_coords = k_coords
-        self.RES = self.WIDTH, self.HEIGHT = 600, 600
         self.RES1 = self.WIDTH, self.HEIGHT = 800, 600
         self.n = n
         self.l = l
         self.k = k
         self.b = b
         self.sc = pg.display.set_mode(self.RES1)
-        self.FPS = 60
-        self.size = 600 / self.n
-        pg.init()
-        pg.mixer.init()
-        pg.display.set_caption("My Game")
-        self.fontObj = pg.font.Font(None, 48)
-        self.clock = pg.time.Clock()
-        self.create_pgBoard()
+        self.draw()
 
-    def output_file(self) -> None:
+    def output_to_file(self) -> None:
         """Метод, осуществляющий запись всех вариантов расстановки фигур в файл"""
-        variant = self.b.solution_options
+        variant = self.b.all_solutions
         for k in variant:
             for i in k:
                 m = [str(i.x), str(i.y)]
@@ -338,38 +321,46 @@ class DrawBoard:
         self.file_out.close()
         sys.exit()
 
-    def create_pgBoard(self) -> None:
+    def draw(self) -> None:
         """
         Метод, рисующий доску с помощью pygame, а также вызывающий метод output_file для записи в файл решений при
         нажатии на кнопку Output
         """
-        text = self.fontObj.render('Output', True, (0, 0, 0), None)
-        outputbutton = 620, 280, 150, 40
+        RES = self.WIDTH, self.HEIGHT = 600, 600
+        FPS = 60
+        size = 600 / self.n
+        pg.init()
+        pg.mixer.init()
+        pg.display.set_caption("My Game")
+        fontObj = pg.font.Font(None, 48)
+        clock = pg.time.Clock()
+        text = fontObj.render('Output', True, (0, 0, 0), None)
+        outputbutton = (620, 280, 150, 40)
         self.button = pg.draw.rect(self.sc, (255, 255, 255), outputbutton)
         self.sc.blit(text, (630, 290))
         pg.display.update()
-        board = pg.Surface(self.RES)
+        board = pg.Surface(RES)
 
         for x in range(self.n):
             for y in range(self.n):
-                pg.draw.rect(self.sc, LIGHT_YELLOW, [self.size * x, self.size * y, self.size, self.size])
+                pg.draw.rect(self.sc, LIGHT_YELLOW, [size * x, size * y, size, size])
             pg.display.update()
 
         for hit in self.hit_variants:
             x, y = hit[0], hit[1]
-            pg.draw.rect(self.sc, STATE_BLUE, [self.size * y, self.size * x, self.size, self.size])
+            pg.draw.rect(self.sc, STATE_BLUE, [size * y, size * x, size, size])
             pg.display.update()
         for new_coords in self.list_new_coords:
             x, y = new_coords.x, new_coords.y
-            pg.draw.rect(self.sc, new_coords.color, [self.size * y, self.size * x, self.size, self.size])
+            pg.draw.rect(self.sc, new_coords.color, [size * y, size * x, size, size])
             pg.display.update()
         for coords in self.list_coords:
             x, y = coords.x, coords.y
-            pg.draw.rect(self.sc, coords.color, [self.size * y, self.size * x, self.size, self.size])
+            pg.draw.rect(self.sc, coords.color, [size * y, size * x, size, size])
             pg.display.update()
         for x in range(self.n):
             for y in range(self.n):
-                pg.draw.rect(self.sc, BLACK, [self.size * x, self.size * y, self.size, self.size], width=2)
+                pg.draw.rect(self.sc, BLACK, [size * x, size * y, size, size], width=2)
                 pg.display.update()
         while True:
             for event in pg.event.get():
@@ -379,7 +370,7 @@ class DrawBoard:
                 if event.type == pg.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         if self.button.collidepoint(event.pos):
-                            self.output_file()
+                            self.output_to_file()
 
             self.sc.blit(board, (0, 0))
 
